@@ -3,11 +3,6 @@ import '../../features/meals/domain/meal_log_entry.dart';
 import '../../features/meals/domain/food_item.dart';
 import '../local/db/app_database.dart';
 
-final databaseProvider = Provider<AppDatabase>((ref) {
-  // In a real app we'd dispose this properly
-  return AppDatabase();
-});
-
 final mealsRepositoryProvider = Provider<MealsRepository>((ref) {
   return MealsRepository(ref.watch(databaseProvider));
 });
@@ -18,13 +13,13 @@ class MealsRepository {
   MealsRepository(this._db);
 
   Future<List<FoodItem>> searchFoods(String query) async {
-    final queryLower = query.toLowerCase();
-    
-    // We fetch all for demo speed, but in prod we'd make a Drift query
-    final foods = await _db.select(_db.foods).get();
-    
+    final queryLower = '%${query.toLowerCase()}%';
+
+    final foods = await (_db.select(_db.foods)
+          ..where((f) => f.name.like(queryLower) | f.category.like(queryLower)))
+        .get();
+
     return foods
-        .where((f) => f.name.toLowerCase().contains(queryLower) || f.category.toLowerCase().contains(queryLower))
         .map((f) => FoodItem(
               id: f.id,
               name: f.name,
@@ -42,22 +37,22 @@ class MealsRepository {
     final query = _db.select(_db.foods)
       ..where((t) => t.localPriority.equals(true))
       ..limit(10);
-      
+
     final results = await query.get();
     return results.map((f) => FoodItem(
-      id: f.id,
-      name: f.name,
-      category: f.category,
-      portionLabel: f.portionLabel,
-      calories: f.calories,
-      proteinG: f.proteinG,
-      affordable: f.affordable,
-      localPriority: f.localPriority,
-    )).toList();
+          id: f.id,
+          name: f.name,
+          category: f.category,
+          portionLabel: f.portionLabel,
+          calories: f.calories,
+          proteinG: f.proteinG,
+          affordable: f.affordable,
+          localPriority: f.localPriority,
+        )).toList();
   }
 
   Future<void> logMeal(MealLogEntry entry) async {
-    await _db.into(_db.mealLogs).insert(
+    await into(_db.mealLogs).insert(
       MealLogsCompanion.insert(
         id: entry.id,
         mealType: entry.mealType,
@@ -71,26 +66,24 @@ class MealsRepository {
   }
 
   Stream<List<MealLogEntry>> watchLogsForDate(DateTime date) {
-    // Start of day
     final start = DateTime(date.year, date.month, date.day);
-    // End of day
     final end = start.add(const Duration(days: 1));
 
     final query = _db.select(_db.mealLogs)
       ..where((t) => t.loggedAt.isBiggerOrEqualValue(start))
       ..where((t) => t.loggedAt.isSmallerThanValue(end));
-      
+
     return query.watch().map((rows) {
       return rows.map((r) => MealLogEntry(
-        id: r.id,
-        mealType: r.mealType,
-        foodItemId: r.foodItemId,
-        quantity: r.quantity,
-        calories: r.calories,
-        proteinG: r.proteinG,
-        loggedAt: r.loggedAt,
-        note: r.note,
-      )).toList();
+            id: r.id,
+            mealType: r.mealType,
+            foodItemId: r.foodItemId,
+            quantity: r.quantity,
+            calories: r.calories,
+            proteinG: r.proteinG,
+            loggedAt: r.loggedAt,
+            note: r.note,
+          )).toList();
     });
   }
 }

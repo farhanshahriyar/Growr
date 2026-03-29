@@ -13,7 +13,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final profileState = ref.watch(profileControllerProvider);
+  final profileAsync = ref.watch(profileProvider);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -21,7 +21,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       // Guard: If there is no UserProfile, force them to onboarding
       final isGoingToOnboarding = state.uri.path == '/onboarding';
-      
+      final profileState = profileAsync.value;
+
       if (profileState == null && !isGoingToOnboarding) {
         return '/onboarding';
       }

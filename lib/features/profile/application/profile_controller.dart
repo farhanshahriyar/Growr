@@ -1,48 +1,29 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/repositories/profile_repository.dart';
 import '../domain/user_profile.dart';
 
-// Provides sync access to SharedPreferences across the app
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('Initialize in main.dart first');
+// Stream provider that watches profile changes from repository
+final profileProvider = StreamProvider<UserProfile?>((ref) {
+  final repository = ref.watch(profileRepositoryProvider);
+  return repository.watchProfile();
 });
 
-final profileControllerProvider = NotifierProvider<ProfileController, UserProfile?>(() {
+// Controller for profile actions (save, clear)
+final profileControllerProvider = NotifierProvider<ProfileController, void>(() {
   return ProfileController();
 });
 
-class ProfileController extends Notifier<UserProfile?> {
-  static const _profileKey = 'local_user_profile';
-
+class ProfileController extends Notifier<void> {
   @override
-  UserProfile? build() {
-    return _loadProfile();
-  }
-
-  UserProfile? _loadProfile() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    final jsonStr = prefs.getString(_profileKey);
-    if (jsonStr != null) {
-      try {
-        return UserProfile.fromJson(jsonDecode(jsonStr));
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  }
+  void build() {}
 
   Future<void> saveProfile(UserProfile profile) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final jsonStr = jsonEncode(profile.toJson());
-    await prefs.setString(_profileKey, jsonStr);
-    state = profile; // Notifies listeners
+    final repository = ref.read(profileRepositoryProvider);
+    await repository.saveProfile(profile);
   }
 
   Future<void> clearProfile() async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.remove(_profileKey);
-    state = null;
+    final repository = ref.read(profileRepositoryProvider);
+    await repository.clearProfile();
   }
 }

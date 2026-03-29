@@ -17,6 +17,12 @@ class OnboardingController extends Notifier<OnboardingState> {
     return const OnboardingState();
   }
 
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
   void updateName(String name) {
     state = state.copyWith(name: name);
   }
@@ -78,7 +84,7 @@ class OnboardingController extends Notifier<OnboardingState> {
         workoutMode: state.workoutMode,
         dailyCalorieGoal: calorieGoal,
         dailyProteinGoalG: proteinGoal,
-        waterGoalMl: 3000, // Fixed 3L = ~12 glasses MVP rule
+        waterGoalMl: 2500, // 10 glasses × 250ml per spec
         createdAt: DateTime.now(),
       );
 
