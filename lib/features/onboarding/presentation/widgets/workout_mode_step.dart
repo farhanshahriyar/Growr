@@ -1,124 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../../app/theme/app_colors.dart';
-import '../application/onboarding_controller.dart';
+import '../../application/onboarding_controller.dart';
+import '../../../../shared/widgets/primary_button.dart';
+import '../../../../shared/widgets/secondary_button.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class WorkoutModeStep extends ConsumerWidget {
-  final VoidCallback onNext;
-
-  const WorkoutModeStep({super.key, required this.onNext});
+  const WorkoutModeStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingControllerProvider);
-    final notifier = ref.read(onboardingControllerProvider.notifier);
-    final isSaving = ref.watch(_isSavingProvider);
+    final controller = ref.read(onboardingControllerProvider.notifier);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           Text(
-            'Where will you workout?',
+            'Training Setup',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
-            'Growr focuses on a 5-day split.',
+            'Do you train at home or have gym access?',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.inverseSurface.withOpacity(0.6),
-                ),
+                  color: AppColors.inverseSurface.withOpacity(0.7),
+            ),
           ),
           const SizedBox(height: 48),
-          _OptionCard(
-            title: 'At Home',
-            subtitle: 'Bodyweight + Dumbbells focused.',
-            icon: Icons.home,
+          
+          _WorkoutCard(
+            title: 'Home Bodyweight',
+            subtitle: 'Pushups, Pullups, Backpack squats',
             isSelected: state.workoutMode == 'home',
-            onTap: () => notifier.updateWorkoutMode('home'),
+            onTap: () => controller.updateWorkoutMode('home'),
           ),
           const SizedBox(height: 16),
-          _OptionCard(
-            title: 'At the Gym',
-            subtitle: 'Full equipment access.',
-            icon: Icons.fitness_center,
+          _WorkoutCard(
+            title: 'Gym Access',
+            subtitle: 'Dumbbells, Barbells, Machines',
             isSelected: state.workoutMode == 'gym',
-            onTap: () => notifier.updateWorkoutMode('gym'),
+            onTap: () => controller.updateWorkoutMode('gym'),
           ),
+
           const Spacer(),
           PrimaryButton(
-            text: 'Finish Setup',
-            isLoading: isSaving,
-            onPressed: state.isWorkoutReady
-                ? () async {
-                    ref.read(_isSavingProvider.notifier).state = true;
-                    await notifier.completeOnboarding();
-                    ref.read(_isSavingProvider.notifier).state = false;
-                    onNext();
-                  }
-                : () {},
+            label: state.isSubmitting ? 'Finishing...' : 'Complete Profile',
+            isLoading: state.isSubmitting,
+            onPressed: () {
+              controller.submit();
+              // Note: Router redirect will trap and override this context once DB updates
+            },
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          if (!state.isSubmitting)
+            SecondaryButton(
+              label: 'Back',
+              onPressed: controller.previousStep,
+            ),
         ],
       ),
     );
   }
 }
 
-final _isSavingProvider = StateProvider.autoDispose<bool>((ref) => false);
-
-class _OptionCard extends StatelessWidget {
+class _WorkoutCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _OptionCard({
+  const _WorkoutCard({
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: isSelected ? AppColors.primaryContainer : AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16),
-          border: isSelected ? Border.all(color: AppColors.primary, width: 2) : Border.all(color: Colors.transparent, width: 2),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: isSelected ? AppColors.primary : AppColors.inverseSurface.withOpacity(0.5), size: 32),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: isSelected ? AppColors.primary : AppColors.inverseSurface,
-                        ),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: isSelected ? AppColors.onPrimary : AppColors.inverseSurface,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.inverseSurface.withOpacity(0.6),
-                        ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isSelected 
+                        ? AppColors.onPrimary.withOpacity(0.8) 
+                        : AppColors.inverseSurface.withOpacity(0.6),
                   ),
-                ],
-              ),
             ),
           ],
         ),

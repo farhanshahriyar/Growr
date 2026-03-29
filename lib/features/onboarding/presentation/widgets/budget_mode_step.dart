@@ -1,76 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../../app/theme/app_colors.dart';
-import '../application/onboarding_controller.dart';
+import '../../application/onboarding_controller.dart';
+import '../../../../shared/widgets/primary_button.dart';
+import '../../../../shared/widgets/secondary_button.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class BudgetModeStep extends ConsumerWidget {
-  final VoidCallback onNext;
-
-  const BudgetModeStep({super.key, required this.onNext});
+  const BudgetModeStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingControllerProvider);
-    final notifier = ref.read(onboardingControllerProvider.notifier);
+    final controller = ref.read(onboardingControllerProvider.notifier);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           Text(
-            'How is your food budget?',
+            'Budget Mode',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
-            'This influences the default food suggestions.',
+            'Growth isn\'t just for the affluent. We cater advice based on your wallet.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.inverseSurface.withOpacity(0.6),
-                ),
+                  color: AppColors.inverseSurface.withOpacity(0.7),
+            ),
           ),
           const SizedBox(height: 48),
-          _OptionCard(
-            title: 'Affordable / Student',
-            subtitle: 'Prioritize eggs, dal, chola, and simple home food.',
+          
+          _BudgetCard(
+            title: 'Strictly Affordable',
+            subtitle: 'Focus on Dal, Egg, Soy, Rice',
             isSelected: state.budgetMode == 'low',
-            onTap: () => notifier.updateBudgetMode('low'),
+            onTap: () => controller.updateBudgetMode('low'),
           ),
           const SizedBox(height: 16),
-          _OptionCard(
-            title: 'Medium',
-            subtitle: 'A mix of home food with occasional chicken/fish/milk.',
+          _BudgetCard(
+            title: 'Balanced',
+            subtitle: 'Regular Chicken, Fish, Milk mixed in',
             isSelected: state.budgetMode == 'medium',
-            onTap: () => notifier.updateBudgetMode('medium'),
+            onTap: () => controller.updateBudgetMode('medium'),
           ),
-          const SizedBox(height: 16),
-          _OptionCard(
-            title: 'Flexible',
-            subtitle: 'Budget is not an issue.',
-            isSelected: state.budgetMode == 'flexible',
-            onTap: () => notifier.updateBudgetMode('flexible'),
-          ),
+
           const Spacer(),
           PrimaryButton(
-            text: 'Continue',
-            onPressed: state.isBudgetReady ? onNext : () {},
+            label: 'Next',
+            onPressed: controller.nextStep,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          SecondaryButton(
+            label: 'Back',
+            onPressed: controller.previousStep,
+          ),
         ],
       ),
     );
   }
 }
 
-class _OptionCard extends StatelessWidget {
+class _BudgetCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _OptionCard({
+  const _BudgetCard({
     required this.title,
     required this.subtitle,
     required this.isSelected,
@@ -79,14 +77,15 @@ class _OptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: isSelected ? AppColors.tertiaryFixed : AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16),
-          border: isSelected ? Border.all(color: AppColors.primary, width: 2) : Border.all(color: Colors.transparent, width: 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,11 +96,13 @@ class _OptionCard extends StatelessWidget {
                     color: isSelected ? AppColors.primary : AppColors.inverseSurface,
                   ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inverseSurface.withOpacity(0.6),
+                    color: isSelected 
+                        ? AppColors.primary.withOpacity(0.8) 
+                        : AppColors.inverseSurface.withOpacity(0.6),
                   ),
             ),
           ],

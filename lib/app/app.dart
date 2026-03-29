@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/app_theme.dart';
 import 'router.dart';
 
-class GrowrApp extends StatelessWidget {
+class GrowrApp extends ConsumerWidget {
   const GrowrApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    
     return MaterialApp.router(
       title: 'Growr',
       theme: AppTheme.lightTheme,
-      routerConfig: goRouter,
+      routerConfig: router,
     );
   }
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
+import '../../../app/theme/app_colors.dart';
 
 class SecondaryButton extends StatelessWidget {
-  final String text;
+  final String label;
   final VoidCallback onPressed;
 
   const SecondaryButton({
     super.key,
-    required this.text,
+    required this.label,
     required this.onPressed,
   });
 
@@ -16,19 +16,18 @@ class SecondaryButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.secondaryContainer,
-          elevation: 0,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
         onPressed: onPressed,
         child: Text(
-          text,
+          label,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.inverseSurface,
+                color: AppColors.primary,
               ),
         ),
       ),

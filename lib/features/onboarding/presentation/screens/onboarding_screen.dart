@@ -1,49 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../application/onboarding_controller.dart';
 import 'widgets/welcome_step.dart';
 import 'widgets/goal_step.dart';
 import 'widgets/budget_mode_step.dart';
 import 'widgets/workout_mode_step.dart';
+import '../../../app/theme/app_colors.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(onboardingControllerProvider.notifier);
+    final state = ref.watch(onboardingControllerProvider);
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController = PageController();
-
-  void _nextPage() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _finish() {
-    context.go('/home');
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(), // Disable swipe
+        child: Column(
           children: [
-            WelcomeStep(onNext: _nextPage),
-            GoalStep(onNext: _nextPage),
-            BudgetModeStep(onNext: _nextPage),
-            WorkoutModeStep(onNext: _finish),
+            // Simple Progress Indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Row(
+                children: List.generate(4, (index) {
+                  return Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      decoration: BoxDecoration(
+                        color: index <= state.currentStep
+                            ? AppColors.primary
+                            : AppColors.inverseSurface.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            Expanded(
+              child: PageView(
+                controller: controller.pageController,
+                physics: const NeverScrollableScrollPhysics(), // Force button nav
+                children: const [
+                  WelcomeStep(),
+                  GoalStep(),
+                  BudgetModeStep(),
+                  WorkoutModeStep(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

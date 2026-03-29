@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../core/domain/user_profile.dart';
+import '../domain/user_profile.dart';
 
-// Provides the SharedPreferences instance synchronously (must be initialized in main())
+// Provides sync access to SharedPreferences across the app
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('Initialize this in main() with ProviderScope(overrides: [...])');
+  throw UnimplementedError('Initialize in main.dart first');
 });
 
 final profileControllerProvider = NotifierProvider<ProfileController, UserProfile?>(() {
@@ -12,7 +13,7 @@ final profileControllerProvider = NotifierProvider<ProfileController, UserProfil
 });
 
 class ProfileController extends Notifier<UserProfile?> {
-  static const _profileKey = 'user_profile';
+  static const _profileKey = 'local_user_profile';
 
   @override
   UserProfile? build() {
@@ -21,12 +22,11 @@ class ProfileController extends Notifier<UserProfile?> {
 
   UserProfile? _loadProfile() {
     final prefs = ref.watch(sharedPreferencesProvider);
-    final profileJson = prefs.getString(_profileKey);
-    if (profileJson != null) {
+    final jsonStr = prefs.getString(_profileKey);
+    if (jsonStr != null) {
       try {
-        return UserProfile.fromJson(profileJson);
+        return UserProfile.fromJson(jsonDecode(jsonStr));
       } catch (e) {
-        // Fallback if corruption occurs
         return null;
       }
     }
@@ -35,8 +35,9 @@ class ProfileController extends Notifier<UserProfile?> {
 
   Future<void> saveProfile(UserProfile profile) async {
     final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(_profileKey, profile.toJson());
-    state = profile;
+    final jsonStr = jsonEncode(profile.toJson());
+    await prefs.setString(_profileKey, jsonStr);
+    state = profile; // Notifies listeners
   }
 
   Future<void> clearProfile() async {

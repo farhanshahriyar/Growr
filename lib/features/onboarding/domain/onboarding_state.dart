@@ -1,35 +1,35 @@
 class OnboardingState {
+  final int currentStep;
   final String name;
-  final String goal; // lean_bulk, fat_loss, maintain
-  final String budgetMode; // low, medium, flexible
-  final String workoutMode; // home, gym
-  final List<String> preferences;
+  final String primaryGoal;
+  final String budgetMode;
+  final String workoutMode;
+  final bool isSubmitting;
 
   const OnboardingState({
+    this.currentStep = 0,
     this.name = '',
-    this.goal = '',
-    this.budgetMode = '',
-    this.workoutMode = '',
-    this.preferences = const [],
+    this.primaryGoal = 'lean_bulk',
+    this.budgetMode = 'low',
+    this.workoutMode = 'home',
+    this.isSubmitting = false,
   });
 
   OnboardingState copyWith({
+    int? currentStep,
     String? name,
-    String? goal,
+    String? primaryGoal,
     String? budgetMode,
     String? workoutMode,
-    List<String>? preferences,
+    bool? isSubmitting,
   }) {
     return OnboardingState(
+      currentStep: currentStep ?? this.currentStep,
       name: name ?? this.name,
-      goal: goal ?? this.goal,
+      primaryGoal: primaryGoal ?? this.primaryGoal,
       budgetMode: budgetMode ?? this.budgetMode,
       workoutMode: workoutMode ?? this.workoutMode,
-      preferences: preferences ?? this.preferences,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
-
-  bool get isGoalReady => goal.isNotEmpty;
-  bool get isBudgetReady => budgetMode.isNotEmpty;
-  bool get isWorkoutReady => workoutMode.isNotEmpty;
 }
