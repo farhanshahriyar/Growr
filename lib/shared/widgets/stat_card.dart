@@ -1,64 +1,57 @@
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
+import '../../../app/theme/app_colors.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
-  final String? subtitle;
-  final Widget? trailing;
-  final Color? backgroundColor;
+  final String subtitle;
 
   const StatCard({
     super.key,
     required this.title,
     required this.value,
-    this.subtitle,
-    this.trailing,
-    this.backgroundColor = AppColors.surfaceContainerLowest,
+    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.inverseSurface.withOpacity(0.6),
+                ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppColors.primary,
+                    ),
+              ),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: AppColors.inverseSurface.withOpacity(0.6),
                       ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.inverseSurface.withOpacity(0.6),
-                        ),
-                  ),
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
-          if (trailing != null) trailing!,
         ],
       ),
     );

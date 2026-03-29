@@ -6,24 +6,18 @@ final homeControllerProvider = Provider<HomeSummaryState>((ref) {
   final profile = ref.watch(profileControllerProvider);
 
   if (profile == null) {
-    // Should theoretically never hit this if router protects it.
     throw StateError('Cannot build home dashboard without an active profile.');
   }
 
-  // TODO: In Phase 4/5/6, these values will be watched from actual databases:
-  // final calories = ref.watch(todayMealsProvider).totalCalories;
-  // final protein = ref.watch(todayMealsProvider).totalProtein;
-  // final water = ref.watch(todayHydrationProvider).totalMl;
-  // final workout = ref.watch(todayWorkoutProvider);
-
+  // Placeholder static data until Phase 4 (Meals) and 5 (Workout) connects the active Streams.
   return HomeSummaryState(
     caloriesConsumed: 0,
     calorieGoal: profile.dailyCalorieGoal,
     proteinConsumedG: 0,
     proteinGoalG: profile.dailyProteinGoalG,
-    waterLoggedMl: 0, // Placeholder
+    waterLoggedMl: 0, 
     waterGoalMl: profile.waterGoalMl,
-    activeWorkoutDay: 'Day 1: Upper Body (Mock)',
+    activeWorkoutDay: 'Day 1: Upper Body',
     workoutCompletedToday: false,
     tipOfTheDay: _getBudgetTip(profile.budgetMode),
   );

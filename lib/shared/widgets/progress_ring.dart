@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
-import 'dart:math' as math;
+import 'dart:math';
+import '../../../app/theme/app_colors.dart';
 
 class ProgressRing extends StatelessWidget {
   final double progress; // 0.0 to 1.0
@@ -10,8 +10,8 @@ class ProgressRing extends StatelessWidget {
   const ProgressRing({
     super.key,
     required this.progress,
-    this.size = 120.0,
-    this.strokeWidth = 8.0,
+    this.size = 100,
+    this.strokeWidth = 10,
   });
 
   @override
@@ -19,63 +19,39 @@ class ProgressRing extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _ProgressRingPainter(
-          progress: progress,
-          strokeWidth: strokeWidth,
-        ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(
+              value: 1.0,
+              strokeWidth: strokeWidth,
+              color: AppColors.surfaceContainerLow,
+            ),
+          ),
+          SizedBox(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: strokeWidth,
+              backgroundColor: Colors.transparent,
+              color: AppColors.primary,
+              strokeCap: StrokeCap.round,
+            ),
+          ),
+          // Percentage Text
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+          ),
+        ],
       ),
     );
-  }
-}
-
-class _ProgressRingPainter extends CustomPainter {
-  final double progress;
-  final double strokeWidth;
-
-  _ProgressRingPainter({
-    required this.progress,
-    required this.strokeWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Background circle
-    final bgPaint = Paint()
-      ..color = AppColors.surfaceContainerLow
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // Foreground arc
-    final gradient = const SweepGradient(
-      colors: [AppColors.primary, AppColors.secondary, AppColors.primary],
-      stops: [0.0, 0.5, 1.0],
-      startAngle: -math.pi / 2,
-      endAngle: 3 * math.pi / 2,
-    ).createShader(Rect.fromCircle(center: center, radius: radius));
-
-    final fgPaint = Paint()
-      ..shader = gradient
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      sweepAngle,
-      false,
-      fgPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProgressRingPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.strokeWidth != strokeWidth;
   }
 }

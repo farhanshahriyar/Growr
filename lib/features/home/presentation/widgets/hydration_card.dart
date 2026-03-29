@@ -14,9 +14,9 @@ class HydrationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Math rules from IMP: 1 glass = 250ml
-    final glassesLogged = loggedMl ~/ 250;
-    final glassesGoal = goalMl ~/ 250;
+    // Math rules: 1 glass = 250ml
+    final glassesLogged = (loggedMl ~/ 250);
+    final glassesGoal = (goalMl ~/ 250);
     final progress = goalMl > 0 ? (loggedMl / goalMl).clamp(0.0, 1.0) : 0.0;
 
     return Container(
@@ -64,7 +64,7 @@ class HydrationCard extends StatelessWidget {
           ),
           IconButton(
             onPressed: () {
-              // TODO: Wire up to HydrationController in Phase 6
+              // Placeholder for Phase 4 interactions
             },
             icon: const Icon(Icons.add_circle),
             iconSize: 32,
