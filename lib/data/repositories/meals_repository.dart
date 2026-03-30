@@ -65,6 +65,10 @@ class MealsRepository {
     );
   }
 
+  Future<void> deleteMeal(String id) async {
+    await (_db.delete(_db.mealLogs)..where((t) => t.id.equals(id))).go();
+  }
+
   Stream<List<MealLogEntry>> watchLogsForDate(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));

@@ -66,6 +66,10 @@ class MealsController {
     );
     await _repo.logMeal(entry);
   }
+
+  Future<void> deleteMeal(String id) async {
+    await _repo.deleteMeal(id);
+  }
 }
 
 final mealsControllerProvider = Provider<MealsController>((ref) {

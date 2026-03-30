@@ -361,7 +361,7 @@ class _MealTypeSection extends StatelessWidget {
   }
 }
 
-class _MealEntryCard extends StatelessWidget {
+class _MealEntryCard extends ConsumerWidget {
   final MealLogEntry entry;
 
   const _MealEntryCard({
@@ -369,7 +369,7 @@ class _MealEntryCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final time = '${entry.loggedAt.hour}:${entry.loggedAt.minute.toString().padLeft(2, '0')}';
 
     return Container(
@@ -402,7 +402,13 @@ class _MealEntryCard extends StatelessWidget {
               ],
             ),
           ),
-          // TODO: Add delete/edit actions later
+          IconButton(
+            icon: Icon(Icons.delete_outline, color: AppColors.primary.withOpacity(0.8)),
+            onPressed: () async {
+              final controller = ref.read(mealsControllerProvider);
+              await controller.deleteMeal(entry.id);
+            },
+          ),
         ],
       ),
     );

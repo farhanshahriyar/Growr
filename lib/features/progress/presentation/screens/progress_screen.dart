@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../application/progress_controller.dart';
 import '../domain/weight_log.dart';
 import '../domain/progress_photo.dart';
@@ -84,7 +86,17 @@ class ProgressScreen extends ConsumerWidget {
                     color: AppColors.inverseSurface,
                   ),
                 ),
-                // TODO: Add photo upload button
+                IconButton(
+                  icon: const Icon(Icons.add_a_photo, color: AppColors.primary),
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                    if (pickedFile != null) {
+                      final controller = ref.read(progressControllerProvider);
+                      await controller.logProgressPhoto('Front', pickedFile.path);
+                    }
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -108,21 +120,34 @@ class ProgressScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: AppColors.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(
+                          image: FileImage(File(photo.uri)),
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.photo, color: AppColors.inverseSurface.withOpacity(0.4)),
-                            const SizedBox(height: 8),
-                            Text(
-                              photo.type,
-                              style: TextStyle(
-                                color: AppColors.inverseSurface.withOpacity(0.6),
-                                fontSize: 12,
-                              ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              AppColors.inverseSurface.withOpacity(0.7),
+                            ],
+                          ),
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            photo.type,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     );
