@@ -5,11 +5,13 @@ import '../../../app/theme/app_colors.dart';
 class HydrationCard extends StatelessWidget {
   final int loggedMl;
   final int goalMl;
+  final VoidCallback? onAdd;
 
   const HydrationCard({
     super.key,
     required this.loggedMl,
     required this.goalMl,
+    this.onAdd,
   });
 
   @override
@@ -63,9 +65,7 @@ class HydrationCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () {
-              // Placeholder for Phase 4 interactions
-            },
+            onPressed: onAdd,
             icon: const Icon(Icons.add_circle),
             iconSize: 32,
             color: AppColors.primary,

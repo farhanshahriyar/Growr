@@ -1,22 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/repositories/meals_repository.dart';
-import '../domain/meal_log_entry.dart';
-import '../domain/food_item.dart';
+import '../../features/meals/domain/meal_log_entry.dart';
+import '../../features/meals/domain/food_item.dart';
+import '../local/db/app_database.dart';
 
-// Provider exposing today's exact logs
-final todayMealsLogsProvider = StreamProvider.autoDispose<List<MealLogEntry>>((ref) {
+final mealsRepositoryProvider = Provider<MealsRepository>((ref) {
+  return MealsRepository(ref.watch(databaseProvider));
+});
+
+// Stream provider for today's meal logs
+final todayMealsProvider = StreamProvider.autoDispose<List<MealLogEntry>>((ref) {
   final repo = ref.watch(mealsRepositoryProvider);
   return repo.watchLogsForDate(DateTime.now());
 });
 
-// A derived provider keeping track of total macros for the day
+// Provider for daily totals (calories, protein)
 final todayMealsTotalsProvider = Provider.autoDispose<MealsDailySummary>((ref) {
-  final logsAsync = ref.watch(todayMealsLogsProvider);
-  
+  final logsAsync = ref.watch(todayMealsProvider);
+
   return logsAsync.maybeWhen(
     data: (logs) {
       if (logs.isEmpty) return const MealsDailySummary(totalCalories: 0, totalProtein: 0);
-      
+
       final calories = logs.fold<int>(0, (sum, item) => sum + item.calories);
       final protein = logs.fold<int>(0, (sum, item) => sum + item.proteinG);
       return MealsDailySummary(totalCalories: calories, totalProtein: protein);
@@ -35,11 +39,6 @@ class MealsDailySummary {
   });
 }
 
-// Controller specifically handling Quick Adds and Search
-final mealsControllerProvider = Provider<MealsController>((ref) {
-  return MealsController(ref.watch(mealsRepositoryProvider));
-});
-
 class MealsController {
   final MealsRepository _repo;
 
@@ -56,14 +55,25 @@ class MealsController {
 
   Future<void> logFood(FoodItem food, String mealType, double quantityMultiplier) async {
     final entry = MealLogEntry(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // fast unique ID
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       mealType: mealType,
       foodItemId: food.id,
       quantity: quantityMultiplier,
       calories: (food.calories * quantityMultiplier).round(),
       proteinG: (food.proteinG * quantityMultiplier).round(),
       loggedAt: DateTime.now(),
+      note: food.name, // Store food name for quick display
     );
     await _repo.logMeal(entry);
   }
 }
+
+final mealsControllerProvider = Provider<MealsController>((ref) {
+  return MealsController(ref.watch(mealsRepositoryProvider));
+});
+
+final quickAddFoodsProvider = FutureProvider.autoDispose<List<FoodItem>>((ref) {
+  final repo = ref.watch(mealsRepositoryProvider);
+  return repo.getQuickAddFoods();
+});
+

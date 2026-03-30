@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../local/db/app_database.dart';
+import '../../features/workout/domain/workout_plan.dart';
+import '../../features/workout/domain/workout_session.dart';
+import '../../features/workout/domain/logged_exercise.dart';
 
 final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
   return WorkoutRepository(ref.watch(databaseProvider));
@@ -21,7 +24,16 @@ class WorkoutRepository {
       ..where((t) => t.startedAt.isBiggerOrEqualValue(start))
       ..where((t) => t.startedAt.isSmallerThanValue(end));
 
-    return query.watchSingleOrNull();
+    return query.watchSingleOrNull().map((row) {
+      if (row == null) return null;
+      return WorkoutSessionEntity(
+        id: row.id,
+        planId: row.planId,
+        startedAt: row.startedAt,
+        endedAt: row.endedAt,
+        completed: row.completed,
+      );
+    });
   }
 
   Future<WorkoutSessionEntity> startWorkoutSession(String planId) async {
@@ -98,15 +110,34 @@ class WorkoutRepository {
   }
 
   Future<List<WorkoutExerciseEntity>> getExercisesForPlan(String planId) async {
-    final exercises = await (_db.select(_db.workoutExercises)
+    final rows = await (_db.select(_db.workoutExercises)
           ..where((t) => t.planId.equals(planId)))
         .get();
 
-    return exercises;
+    return rows.map((row) {
+      return WorkoutExerciseEntity(
+        id: row.id,
+        planId: row.planId,
+        name: row.name,
+        sets: row.sets,
+        repRange: row.repRange,
+        defaultRestSec: row.defaultRestSec,
+      );
+    }).toList();
   }
 
   Future<List<WorkoutPlanEntity>> getAllPlans() async {
-    return await (_db.select(_db.workoutPlans)).get();
+    final rows = await (_db.select(_db.workoutPlans)).get();
+
+    return rows.map((row) {
+      return WorkoutPlanEntity(
+        id: row.id,
+        name: row.name,
+        day: row.day,
+        title: row.title,
+        durationMin: row.durationMin,
+      );
+    }).toList();
   }
 
   Stream<Map<String, dynamic>> watchWeeklyWorkoutStats() {
@@ -142,5 +173,31 @@ class WorkoutRepository {
     await delete(_db.workoutSessions).go();
     await delete(_db.workoutExercises).go();
     await delete(_db.workoutPlans).go();
+  }
+
+  // Helper methods for active workout tracking
+  Future<List<LoggedExerciseEntity>> getLoggedExercisesForSession(String sessionId) async {
+    final rows = await (_db.select(_db.workoutLoggedExercises)
+          ..where((t) => t.sessionId.equals(sessionId)))
+        .get();
+    return rows.map((row) => LoggedExerciseEntity(
+      id: row.id,
+      sessionId: row.sessionId,
+      exerciseId: row.exerciseId,
+    )).toList();
+  }
+
+  Future<List<LoggedSetEntity>> getSetsForLoggedExercise(String loggedExerciseId) async {
+    final rows = await (_db.select(_db.workoutLoggedSets)
+          ..where((t) => t.loggedExerciseId.equals(loggedExerciseId)))
+        .get();
+    return rows.map((row) => LoggedSetEntity(
+      id: row.id,
+      loggedExerciseId: row.loggedExerciseId,
+      setNo: row.setNo,
+      reps: row.reps,
+      weightKg: row.weightKg,
+      done: row.done,
+    )).toList();
   }
 }

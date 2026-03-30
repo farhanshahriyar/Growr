@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../local/db/app_database.dart';
+import '../../features/progress/domain/weight_log.dart';
+import '../../features/progress/domain/progress_photo.dart';
 
 final progressRepositoryProvider = Provider<ProgressRepository>((ref) {
   return ProgressRepository(ref.watch(databaseProvider));
@@ -8,14 +9,13 @@ final progressRepositoryProvider = Provider<ProgressRepository>((ref) {
 
 class ProgressRepository {
   final AppDatabase _db;
-  final _uuid = const Uuid();
 
   ProgressRepository(this._db);
 
   Future<void> logWeight(double weightKg) async {
     await into(_db.weightLogs).insert(
       WeightLogsCompanion.insert(
-        id: _uuid.v4(),
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         weightKg: weightKg,
         loggedAt: DateTime.now(),
       ),
@@ -25,7 +25,7 @@ class ProgressRepository {
   Future<void> logProgressPhoto(String type, String uri) async {
     await into(_db.progressPhotos).insert(
       ProgressPhotosCompanion.insert(
-        id: _uuid.v4(),
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: type,
         uri: uri,
         loggedAt: DateTime.now(),
@@ -38,14 +38,27 @@ class ProgressRepository {
       ..orderBy([(t) => OrderingTerm.desc(t.loggedAt)])
       ..limit(limit);
 
-    return query.watch();
+    return query.watch().map((rows) {
+      return rows.map((row) => WeightLogEntity(
+        id: row.id,
+        weightKg: row.weightKg,
+        loggedAt: row.loggedAt,
+      )).toList();
+    });
   }
 
   Stream<List<ProgressPhotoEntity>> getProgressPhotos() {
     final query = _db.select(_db.progressPhotos)
       ..orderBy([(t) => OrderingTerm.desc(t.loggedAt)]);
 
-    return query.watch();
+    return query.watch().map((rows) {
+      return rows.map((row) => ProgressPhotoEntity(
+        id: row.id,
+        type: row.type,
+        uri: row.uri,
+        loggedAt: row.loggedAt,
+      )).toList();
+    });
   }
 
   Stream<Map<String, dynamic>> watchWeeklySummary() {
